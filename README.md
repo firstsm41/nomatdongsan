@@ -1,6 +1,6 @@
 # 노맛동산 (nomatdongsan)
 
-의학용어 **713단어**가 내장된 단어장·퀴즈 웹앱입니다.
+의학용어 **737단어**가 내장된 단어장·퀴즈 웹앱입니다.
 
 - **라이브:** https://firstsm41.github.io/nomatdongsan/
 - 저장소: https://github.com/firstsm41/nomatdongsan
