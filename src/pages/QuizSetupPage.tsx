@@ -8,6 +8,7 @@ import {
   QUIZ_TYPE_DESCRIPTIONS,
   QUIZ_TYPE_LABELS,
 } from '../lib/quizEngine'
+import { useCategoryStats } from '../hooks/useStudyStats'
 import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
 import type { QuizType } from '../types/vocabulary'
@@ -25,20 +26,19 @@ export function QuizSetupPage() {
   const navigate = useNavigate()
   const wordbook = useWordbookStore((s) => s.getWordbook(id ?? ''))
   const wrongCount = useStudyStore((s) => s.totalWrongCount(id ?? ''))
-  const getCategoryStats = useStudyStore((s) => s.getCategoryStats)
 
   const [quizType, setQuizType] = useState<QuizType>('word-to-meaning')
   const [count, setCount] = useState(20)
   const [category, setCategory] = useState<string | null>(null)
 
+  const categoryStats = useCategoryStats(
+    wordbook?.id ?? id ?? '',
+    wordbook?.entries ?? [],
+  )
+
   const categories = useMemo(
     () => (wordbook ? countByCategory(wordbook.entries) : []),
     [wordbook],
-  )
-
-  const categoryStats = useMemo(
-    () => (wordbook ? getCategoryStats(wordbook.id, wordbook.entries) : []),
-    [wordbook, getCategoryStats],
   )
 
   const poolEntries = useMemo(() => {

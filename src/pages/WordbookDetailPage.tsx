@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
+import { useStudySummary } from '../hooks/useStudyStats'
 import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
 
@@ -9,7 +10,10 @@ export function WordbookDetailPage() {
   const { id } = useParams<{ id: string }>()
   const wordbook = useWordbookStore((s) => s.getWordbook(id ?? ''))
   const wrongCount = useStudyStore((s) => s.totalWrongCount(id ?? ''))
-  const getSummary = useStudyStore((s) => s.getSummary)
+  const summary = useStudySummary(
+    wordbook?.id ?? id ?? '',
+    wordbook?.entries.length ?? 0,
+  )
 
   if (!wordbook) {
     return (
@@ -26,7 +30,6 @@ export function WordbookDetailPage() {
 
   const abbrCount = wordbook.entries.filter((e) => e.abbreviation).length
   const categories = new Set(wordbook.entries.map((e) => e.category).filter(Boolean))
-  const summary = getSummary(wordbook.id, wordbook.entries.length)
 
   return (
     <div className="space-y-5">
@@ -69,7 +72,7 @@ export function WordbookDetailPage() {
           to="/stats"
           title="학습 통계"
           desc={
-            summary && summary.sessionsCount > 0
+            summary.sessionsCount > 0
               ? `정답률 ${summary.accuracy}%`
               : '분야별·취약 단어 분석'
           }

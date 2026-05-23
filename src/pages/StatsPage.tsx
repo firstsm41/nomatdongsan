@@ -5,21 +5,23 @@ import { PageHeader } from '../components/PageHeader'
 import { BUILTIN_WORDBOOK_ID } from '../data/builtin'
 import { formatRelativeTime } from '../lib/stats'
 import { QUIZ_TYPE_LABELS } from '../lib/quizEngine'
+import {
+  useCategoryStats,
+  useQuizSessions,
+  useStudySummary,
+  useWeakWords,
+} from '../hooks/useStudyStats'
 import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
 
 export function StatsPage() {
   const wb = useWordbookStore((s) => s.getPrimaryWordbook())
-  const getSummary = useStudyStore((s) => s.getSummary)
-  const getCategoryStats = useStudyStore((s) => s.getCategoryStats)
-  const getSessions = useStudyStore((s) => s.getSessions)
-  const getWeakWords = useStudyStore((s) => s.getWeakWords)
   const clearStats = useStudyStore((s) => s.clearStats)
 
-  const summary = getSummary(wb.id, wb.entries.length)
-  const categoryStats = getCategoryStats(wb.id, wb.entries)
-  const sessions = getSessions(wb.id).slice(0, 10)
-  const weakWords = getWeakWords(wb.id, wb.entries, 8)
+  const summary = useStudySummary(wb.id, wb.entries.length)
+  const categoryStats = useCategoryStats(wb.id, wb.entries)
+  const sessions = useQuizSessions(wb.id).slice(0, 10)
+  const weakWords = useWeakWords(wb.id, wb.entries, 8)
   const hasData = summary.sessionsCount > 0
 
   return (

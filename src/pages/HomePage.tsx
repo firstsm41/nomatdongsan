@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Card } from '../components/Card'
 import { BUILTIN_WORDBOOK_ID } from '../data/builtin'
 import { countByCategory } from '../lib/categories'
+import { useStudySummary } from '../hooks/useStudyStats'
 import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
 import type { QuizType } from '../types/vocabulary'
@@ -18,7 +19,7 @@ const TOP_CATEGORIES = ['내과', '외과', '산부인과', '소아청소년과'
 export function HomePage() {
   const wb = useWordbookStore((s) => s.getPrimaryWordbook())
   const wrongCount = useStudyStore((s) => s.totalWrongCount(BUILTIN_WORDBOOK_ID))
-  const summary = useStudyStore((s) => s.getSummary(wb.id, wb.entries.length))
+  const summary = useStudySummary(wb.id, wb.entries.length)
   const abbrCount = wb.entries.filter((e) => e.abbreviation).length
   const categories = countByCategory(wb.entries)
   const topCats = TOP_CATEGORIES.map(

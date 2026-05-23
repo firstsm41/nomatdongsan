@@ -27,10 +27,13 @@ export const useWordbookStore = create<WordbookState>()(
       hydrated: false,
 
       ensureBuiltin: () => {
-        set((s) => ({
+        const s = get()
+        const hasBuiltin = s.wordbooks.some((wb) => wb.id === BUILTIN_WORDBOOK_ID)
+        if (s.hydrated && hasBuiltin) return
+        set({
           wordbooks: mergeBuiltin(s.wordbooks),
           hydrated: true,
-        }))
+        })
       },
 
       addWordbook: (name, entries, description) => {
