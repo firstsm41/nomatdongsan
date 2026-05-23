@@ -11,9 +11,11 @@ import { WordbooksPage } from './pages/WordbooksPage'
 import { StatsPage } from './pages/StatsPage'
 import { WrongNotesPage } from './pages/WrongNotesPage'
 
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <AppInit />
       <Routes>
         <Route element={<Layout />}>
