@@ -3,23 +3,26 @@
 @theme {
   --font-display: 'Outfit', system-ui, sans-serif;
   --font-body: 'Noto Sans KR', system-ui, sans-serif;
-  --color-cream: #faf6f0;
-  --color-ink: #1a1612;
-  --color-ink-muted: #5c5348;
-  --color-accent: #c45c26;
-  --color-accent-hover: #a34a1c;
-  --color-sage: #4a6b5a;
-  --color-sage-light: #e8f0eb;
+  --color-cream: #f4f6f8;
+  --color-ink: #0f172a;
+  --color-ink-muted: #64748b;
+  --color-accent: #0d9488;
+  --color-accent-hover: #0f766e;
+  --color-accent-soft: #ccfbf1;
+  --color-sage: #1e40af;
+  --color-sage-light: #dbeafe;
   --color-card: #ffffff;
-  --color-border: #e5ddd2;
-  --color-success: #2d6a4f;
-  --color-error: #9b2226;
+  --color-border: #e2e8f0;
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 0.06), 0 4px 12px rgb(15 23 42 / 0.04);
 }
 
 html {
   font-family: var(--font-body);
   background: var(--color-cream);
   color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -29,4 +32,8 @@ body {
 
 #root {
   min-height: 100dvh;
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }

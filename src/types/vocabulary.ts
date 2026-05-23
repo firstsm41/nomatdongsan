@@ -11,6 +11,7 @@ export interface WordEntry {
   word: string
   meaning: string
   abbreviation?: string
+  category?: string
   example?: string
   note?: string
 }
@@ -22,6 +23,36 @@ export interface Wordbook {
   entries: WordEntry[]
   createdAt: string
   updatedAt: string
+  builtin?: boolean
+}
+
+export interface EntryStat {
+  correct: number
+  wrong: number
+  lastAnsweredAt?: string
+}
+
+export interface QuizSessionRecord {
+  id: string
+  wordbookId: string
+  quizType: QuizType
+  category: string | null
+  total: number
+  correct: number
+  finishedAt: string
+}
+
+export interface WrongAnswerRecord {
+  id: string
+  wordbookId: string
+  entryId: string
+  word: string
+  meaning: string
+  abbreviation?: string
+  userAnswer: string
+  correctAnswer: string
+  quizType: QuizType
+  wrongAt: string
 }
 
 export interface QuizSession {

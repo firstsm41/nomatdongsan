@@ -1,9 +1,19 @@
 # 노맛동산 (nomatdongsan)
 
-엑셀 단어장을 업로드하고, 여러 유형의 퀴즈로 복습하는 **웹 단어장** 앱입니다.
+의학용어 **713단어**가 내장된 단어장·퀴즈 웹앱입니다. 별도 업로드 없이 바로 학습할 수 있습니다.
 
 - 저장소: `git@github.com:firstsm41/nomatdongsan.git`
-- 로컬 데이터: 브라우저 `localStorage` (별도 서버 없이 동작)
+- 데이터: `src/data/medical-wordbook.json` (의학용어_단어장_정리본 · 단어장_전체 시트)
+- 학습 기록·오답: 브라우저 localStorage
+
+## 기능
+
+| 기능 | 설명 |
+|------|------|
+| **퀴즈** | 단어→뜻, 뜻→단어, 약어, 단답형, 혼합 |
+| **단어 암기** | 검색, 분야별 필터, 목록/카드 모드 |
+| **오답 노트** | 틀린 문제 자동 저장, 오답만 다시 풀기 |
+| **빠른 퀴즈** | 홈에서 20문제 바로 시작 |
 
 ## 시작하기
 
@@ -12,66 +22,33 @@ npm install
 npm run dev
 ```
 
-브라우저에서 `http://localhost:5173` 접속.
-
 ```bash
-npm run build   # 프로덕션 빌드
-npm run preview # 빌드 미리보기
+npm run build
+npm run preview
 ```
 
-## 엑셀 단어장 형식
+## 배포 (Vercel / Netlify 등)
 
-첫 번째 시트의 **첫 행은 헤더**입니다.
+1. 저장소 연결 후 빌드 명령: `npm run build`
+2. 출력 디렉터리: `dist`
+3. SPA 라우팅: 모든 경로를 `index.html`로 리다이렉트
 
-| 열 (필수/선택) | 한글 헤더 | 영문 헤더 (대체) |
-|----------------|-----------|------------------|
-| 필수 | 단어 | word, english, term |
-| 필수 | 뜻 | meaning, definition |
-| 선택 | 약어 | abbreviation, abbr |
-| 선택 | 예문 | example, sentence |
-| 선택 | 메모 | note, comment |
+Netlify는 저장소에 `_redirects` 포함:
 
-앱 내 **「엑셀 양식 다운로드」** 로 샘플 파일을 받을 수 있습니다.
-
-## 지원 퀴즈 유형
-
-| 유형 | 설명 |
-|------|------|
-| 단어 → 뜻 | 영어 단어 보고 뜻 4지선다 |
-| 뜻 → 단어 | 뜻 보고 영어 단어 4지선다 |
-| 약어 맞추기 | 단어에 맞는 약어 4지선다 (약어 열 필요) |
-| 단답형 | 단어 또는 뜻 직접 입력 |
-| 혼합 | 문제마다 유형 랜덤 |
+```
+/*    /index.html   200
+```
 
 ## 프로젝트 구조
 
 ```
 src/
-├── types/vocabulary.ts   # 단어·단어장·퀴즈 타입
-├── lib/
-│   ├── excelParser.ts    # xlsx 업로드/양식
-│   └── quizEngine.ts     # 문제 생성·채점
-├── store/wordbookStore.ts
-├── pages/                # 화면
-└── components/           # UI 공통
+├── data/medical-wordbook.json  # 내장 단어 713개
+├── store/                      # 단어장 · 오답 저장
+├── pages/                      # 화면
+└── lib/                        # 퀴즈 · 엑셀(레거시)
 ```
-
-## 로드맵 (추후 확장)
-
-- [ ] 학습 기록·통계 (정답률, 취약 단어)
-- [ ] 틀린 문제만 다시 풀기
-- [ ] 단어장 엑셀 재보내기
-- [ ] PWA / 모바일 홈 화면 추가
-- [ ] (선택) 클라우드 동기화
 
 ## 기술 스택
 
-- React 19 + TypeScript + Vite
-- React Router, Zustand (persist), SheetJS (xlsx)
-- Tailwind CSS 4
-
-## 배포
-
-정적 호스팅(Vercel, Netlify, GitHub Pages 등)에 `dist` 폴더를 배포하면 됩니다.
-
-GitHub Pages 사용 시 `vite.config.ts`에 `base: '/nomatdongsan/'` 등 저장소 이름에 맞게 설정하세요.
+React 19 · TypeScript · Vite · Tailwind CSS 4 · Zustand

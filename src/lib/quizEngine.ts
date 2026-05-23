@@ -107,13 +107,24 @@ export function generateQuiz(
   entries: WordEntry[],
   quizType: QuizType,
   count: number,
+  onlyEntryIds?: string[],
+  category?: string | null,
 ): QuizQuestion[] {
   if (entries.length === 0) return []
 
+  let base = entries
+  if (category) {
+    base = base.filter((e) => e.category === category)
+  }
+  if (onlyEntryIds && onlyEntryIds.length > 0) {
+    const idSet = new Set(onlyEntryIds)
+    base = base.filter((e) => idSet.has(e.id))
+  }
+
   const pool =
     quizType === 'abbreviation'
-      ? entries.filter((e) => e.abbreviation)
-      : entries
+      ? base.filter((e) => e.abbreviation)
+      : base
 
   if (pool.length === 0) return []
 

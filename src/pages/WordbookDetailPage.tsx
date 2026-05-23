@@ -1,68 +1,120 @@
 import { Link, useParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { PageHeader } from '../components/PageHeader'
+import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
 
 export function WordbookDetailPage() {
   const { id } = useParams<{ id: string }>()
   const wordbook = useWordbookStore((s) => s.getWordbook(id ?? ''))
+  const wrongCount = useStudyStore((s) => s.totalWrongCount(id ?? ''))
+  const getSummary = useStudyStore((s) => s.getSummary)
 
   if (!wordbook) {
     return (
-      <div className="space-y-4 text-center py-12">
+      <div className="py-12 text-center">
         <p>단어장을 찾을 수 없습니다.</p>
-        <Link to="/wordbooks">
-          <Button variant="secondary">목록으로</Button>
+        <Link to="/">
+          <Button variant="secondary" className="mt-4">
+            홈으로
+          </Button>
         </Link>
       </div>
     )
   }
 
-  const withAbbr = wordbook.entries.filter((e) => e.abbreviation).length
+  const abbrCount = wordbook.entries.filter((e) => e.abbreviation).length
+  const categories = new Set(wordbook.entries.map((e) => e.category).filter(Boolean))
+  const summary = getSummary(wordbook.id, wordbook.entries.length)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link to="/wordbooks" className="text-sm text-[var(--color-ink-muted)] hover:underline">
-          ← 단어장 목록
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold">{wordbook.name}</h1>
-        {wordbook.description && (
-          <p className="text-[var(--color-ink-muted)]">{wordbook.description}</p>
-        )}
-        <p className="mt-1 text-sm text-[var(--color-ink-muted)]">
-          {wordbook.entries.length}단어
-          {withAbbr > 0 && ` · 약어 ${withAbbr}개`}
-        </p>
+    <div className="space-y-5">
+      <PageHeader
+        title={wordbook.name}
+        subtitle={wordbook.description}
+        backTo="/"
+      />
+
+      <div className="grid grid-cols-3 gap-2">
+        <Stat label="단어" value={String(wordbook.entries.length)} />
+        <Stat label="약어" value={String(abbrCount)} />
+        <Stat label="분야" value={String(categories.size)} />
       </div>
 
-      <Link to={`/wordbooks/${wordbook.id}/quiz`}>
-        <Button fullWidth>퀴즈 시작</Button>
-      </Link>
+      {wrongCount > 0 && (
+        <Link to="/wrong">
+          <Card className="flex items-center justify-between bg-red-50/60">
+            <span className="text-sm font-semibold text-[var(--color-error)]">
+              오답 {wrongCount}개 복습하기
+            </span>
+            <span>→</span>
+          </Card>
+        </Link>
+      )}
 
-      <Card>
-        <h2 className="mb-3 font-semibold">단어 목록</h2>
-        <div className="max-h-[50vh] overflow-y-auto">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-white text-left text-[var(--color-ink-muted)]">
-              <tr>
-                <th className="pb-2 pr-2">단어</th>
-                <th className="pb-2 pr-2">뜻</th>
-                <th className="pb-2">약어</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wordbook.entries.map((e) => (
-                <tr key={e.id} className="border-t border-[var(--color-border)]">
-                  <td className="py-2 pr-2 font-medium">{e.word}</td>
-                  <td className="py-2 pr-2">{e.meaning}</td>
-                  <td className="py-2 text-[var(--color-ink-muted)]">{e.abbreviation ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <div className="grid gap-2">
+        <ActionCard
+          to={`/wordbooks/${id}/study`}
+          title="단어장 · 암기 카드"
+          desc="검색, 분야 필터, 카드 넘기기"
+          accent
+        />
+        <ActionCard
+          to={`/wordbooks/${id}/quiz`}
+          title="퀴즈"
+          desc="분야·유형·문항 수 선택"
+        />
+        <ActionCard
+          to="/stats"
+          title="학습 통계"
+          desc={
+            summary && summary.sessionsCount > 0
+              ? `정답률 ${summary.accuracy}%`
+              : '분야별·취약 단어 분석'
+          }
+        />
+        <ActionCard to="/wrong" title="오답 노트" desc="틀린 문제만 모아보기" />
+      </div>
+
+      <Link to={`/wordbooks/${id}/quiz/play?type=word-to-meaning&count=20`}>
+        <Button fullWidth>바로 퀴즈 (20문제)</Button>
+      </Link>
     </div>
+  )
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[var(--color-border)] bg-white py-3 text-center shadow-[var(--shadow-card)]">
+      <p className="text-lg font-bold text-[var(--color-accent)]">{value}</p>
+      <p className="text-xs text-[var(--color-ink-muted)]">{label}</p>
+    </div>
+  )
+}
+
+function ActionCard({
+  to,
+  title,
+  desc,
+  accent,
+}: {
+  to: string
+  title: string
+  desc: string
+  accent?: boolean
+}) {
+  return (
+    <Link
+      to={to}
+      className={`block rounded-xl border p-4 shadow-[var(--shadow-card)] transition ${
+        accent
+          ? 'border-[var(--color-accent)]/30 bg-[var(--color-accent-soft)]/50'
+          : 'border-[var(--color-border)] bg-white'
+      }`}
+    >
+      <p className="font-semibold">{title}</p>
+      <p className="text-xs text-[var(--color-ink-muted)]">{desc}</p>
+    </Link>
   )
 }

@@ -1,86 +1,185 @@
 import { Link } from 'react-router-dom'
-import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { BUILTIN_WORDBOOK_ID } from '../data/builtin'
+import { countByCategory } from '../lib/categories'
+import { useStudyStore } from '../store/studyStore'
 import { useWordbookStore } from '../store/wordbookStore'
-import { QUIZ_TYPE_LABELS } from '../lib/quizEngine'
 import type { QuizType } from '../types/vocabulary'
 
-const features: { type: QuizType; icon: string }[] = [
-  { type: 'word-to-meaning', icon: 'A→가' },
-  { type: 'meaning-to-word', icon: '가→A' },
-  { type: 'abbreviation', icon: 'Abbr' },
-  { type: 'short-answer', icon: '✎' },
-  { type: 'mixed', icon: '◇' },
+const quickQuiz: { type: QuizType; label: string; desc: string }[] = [
+  { type: 'word-to-meaning', label: '단어→뜻', desc: '4지선다' },
+  { type: 'meaning-to-word', label: '뜻→단어', desc: '4지선다' },
+  { type: 'abbreviation', label: '약어', desc: '4지선다' },
+  { type: 'mixed', label: '혼합', desc: '랜덤' },
 ]
 
+const TOP_CATEGORIES = ['내과', '외과', '산부인과', '소아청소년과', '공통 의학용어']
+
 export function HomePage() {
-  const wordbooks = useWordbookStore((s) => s.wordbooks)
-  const totalWords = wordbooks.reduce((n, wb) => n + wb.entries.length, 0)
+  const wb = useWordbookStore((s) => s.getPrimaryWordbook())
+  const wrongCount = useStudyStore((s) => s.totalWrongCount(BUILTIN_WORDBOOK_ID))
+  const summary = useStudyStore((s) => s.getSummary(wb.id, wb.entries.length))
+  const abbrCount = wb.entries.filter((e) => e.abbreviation).length
+  const categories = countByCategory(wb.entries)
+  const topCats = TOP_CATEGORIES.map(
+    (name) => categories.find((c) => c.category === name) ?? { category: name, count: 0 },
+  ).filter((c) => c.count > 0)
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-3">
-        <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold leading-tight">
-          엑셀로 만드는
-          <br />
-          <span className="text-[var(--color-accent)]">나만의 단어장</span>
+    <div className="space-y-6">
+      <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-[#0f766e] p-6 text-white shadow-[var(--shadow-card)]">
+        <p className="text-sm font-medium text-white/80">의학용어 단어장</p>
+        <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-bold leading-snug">
+          {wb.name}
         </h1>
-        <p className="text-[var(--color-ink-muted)] leading-relaxed">
-          엑셀 파일을 올리면 단어장이 만들어지고, 4지선다·단답형·약어 퀴즈 등
-          여러 유형으로 복습할 수 있습니다.
+        <p className="mt-2 text-sm text-white/90">
+          {wb.entries.length}단어 · 약어 {abbrCount}개
+          {summary.accuracy != null && ` · 정답률 ${summary.accuracy}%`}
         </p>
-        <div className="flex flex-wrap gap-3 pt-2">
-          <Link to="/wordbooks/new">
-            <Button>단어장 만들기</Button>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link to={`/wordbooks/${wb.id}/quiz`}>
+            <button
+              type="button"
+              className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[var(--color-accent)] shadow-sm"
+            >
+              퀴즈 시작
+            </button>
           </Link>
-          {wordbooks.length > 0 && (
-            <Link to="/wordbooks">
-              <Button variant="secondary">단어장 보기 ({wordbooks.length})</Button>
-            </Link>
-          )}
+          <Link to={`/wordbooks/${wb.id}/study`}>
+            <button
+              type="button"
+              className="rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30"
+            >
+              단어 암기
+            </button>
+          </Link>
+          <Link to="/stats">
+            <button
+              type="button"
+              className="rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30"
+            >
+              통계
+            </button>
+          </Link>
         </div>
       </section>
 
-      {wordbooks.length > 0 && (
-        <Card>
-          <p className="text-sm text-[var(--color-ink-muted)]">학습 현황</p>
-          <p className="mt-1 text-2xl font-bold">
-            {wordbooks.length}권 · {totalWords}단어
-          </p>
-        </Card>
+      {wrongCount > 0 && (
+        <Link to="/wrong">
+          <Card className="flex items-center justify-between border-[var(--color-error)]/20 bg-red-50/80">
+            <div>
+              <p className="font-semibold text-[var(--color-error)]">오답 노트</p>
+              <p className="text-sm text-[var(--color-ink-muted)]">
+                틀린 {wrongCount}개 — 다시 풀어보세요
+              </p>
+            </div>
+            <span className="text-2xl text-[var(--color-error)]">→</span>
+          </Card>
+        </Link>
       )}
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">지원 퀴즈 유형</h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {features.map(({ type, icon }) => (
-            <li
-              key={type}
-              className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-white p-4"
+      {topCats.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-[var(--color-ink-muted)]">
+              분야별 퀴즈
+            </h2>
+            <Link
+              to={`/wordbooks/${wb.id}/quiz`}
+              className="text-xs font-medium text-[var(--color-accent)]"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-sage-light)] text-xs font-bold text-[var(--color-sage)]">
-                {icon}
-              </span>
-              <div>
-                <p className="font-medium">{QUIZ_TYPE_LABELS[type]}</p>
-              </div>
-            </li>
+              전체 설정 →
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {topCats.map(({ category, count }) => (
+              <Link
+                key={category}
+                to={`/wordbooks/${wb.id}/quiz/play?type=word-to-meaning&count=${Math.min(15, count)}&category=${encodeURIComponent(category)}`}
+                className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm shadow-[var(--shadow-card)] transition hover:border-[var(--color-accent)]"
+              >
+                <span className="font-semibold">{category}</span>
+                <span className="ml-1 text-xs text-[var(--color-ink-muted)]">
+                  {count}단어
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--color-ink-muted)]">
+          빠른 퀴즈 (전체)
+        </h2>
+        <div className="grid grid-cols-2 gap-2">
+          {quickQuiz.map(({ type, label, desc }) => (
+            <Link
+              key={type}
+              to={`/wordbooks/${wb.id}/quiz/play?type=${type}&count=20`}
+              className="rounded-xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)] transition hover:border-[var(--color-accent)]"
+            >
+              <p className="font-semibold">{label}</p>
+              <p className="text-xs text-[var(--color-ink-muted)]">
+                {desc} · 20문제
+              </p>
+            </Link>
           ))}
-        </ul>
+        </div>
       </section>
 
-      <Card className="bg-[var(--color-sage-light)]/40 border-[var(--color-sage)]/20">
-        <h3 className="font-semibold text-[var(--color-sage)]">엑셀 형식 안내</h3>
-        <p className="mt-2 text-sm text-[var(--color-ink-muted)] leading-relaxed">
-          첫 행: <strong>단어</strong>, <strong>뜻</strong> (필수) · <strong>약어</strong>,{' '}
-          <strong>예문</strong>, <strong>메모</strong> (선택)
-          <br />
-          영문 헤더(word, meaning, abbreviation)도 인식합니다.
-        </p>
-        <Link to="/wordbooks/new" className="mt-3 inline-block text-sm font-semibold text-[var(--color-accent)]">
-          양식 받으며 만들기 →
-        </Link>
-      </Card>
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--color-ink-muted)]">
+          학습 메뉴
+        </h2>
+        <ul className="space-y-2">
+          <MenuLink
+            to={`/wordbooks/${wb.id}/study`}
+            title="단어장 보기"
+            desc="검색 · 분야별 · 카드 암기"
+          />
+          <MenuLink
+            to={`/wordbooks/${wb.id}/quiz`}
+            title="퀴즈 설정"
+            desc="분야·유형·문항 수 선택"
+          />
+          <MenuLink
+            to="/stats"
+            title="학습 통계"
+            desc={
+              summary.sessionsCount > 0
+                ? `정답률 ${summary.accuracy}% · ${summary.sessionsCount}회`
+                : '퀴즈 후 자동 집계'
+            }
+          />
+          <MenuLink to="/wrong" title="오답 노트" desc="틀린 문제만 복습" />
+        </ul>
+      </section>
     </div>
+  )
+}
+
+function MenuLink({
+  to,
+  title,
+  desc,
+}: {
+  to: string
+  title: string
+  desc: string
+}) {
+  return (
+    <li>
+      <Link
+        to={to}
+        className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-white px-4 py-3.5 shadow-[var(--shadow-card)]"
+      >
+        <div>
+          <p className="font-medium">{title}</p>
+          <p className="text-xs text-[var(--color-ink-muted)]">{desc}</p>
+        </div>
+        <span className="text-[var(--color-ink-muted)]">→</span>
+      </Link>
+    </li>
   )
 }
